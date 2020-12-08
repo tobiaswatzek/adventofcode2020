@@ -8,39 +8,24 @@ using adventofcode2020.Extensions;
 
 namespace adventofcode2020
 {
-    public interface IPasswordPolicy
-    {
-        public bool IsValid(string password);
-    }
-
-    public record MinMaxPasswordPolicy(char Letter, int Min, int Max) : IPasswordPolicy
-    {
-        public bool IsValid(string password) => password.Count(c => c == Letter).IsBetween(Min, Max);
-    }
-
-    public record ExactlyOnePositionPasswordPolicy(char Letter, int First, int Second) : IPasswordPolicy
-    {
-        public bool IsValid(string password) => password.ElementAtOrDefault(First - 1) == Letter ^
-                                                password.ElementAtOrDefault(Second - 1) == Letter;
-    }
-
-    public class Day2
+    public class Day2 : IDay
     {
         private static readonly Regex PolicyRegex = new(
             "(?<first>\\d+)-(?<second>\\d+) (?<letter>[a-z]): (?<password>[a-z]+)",
             RegexOptions.Compiled);
 
-        public async Task Solve()
+        public int Number { get; } = 2;
+
+        public async Task<(string firstSolution, string secondSolution)> Solve()
         {
             var lines = await File.ReadAllLinesAsync("./input/day2.txt");
 
             var data = lines.ToList();
 
-            var first = SolveFirst(data);
-            Console.WriteLine($"Day 2 (1): {first}");
+            var first = SolveFirst(data).ToString();
+            var second = SolveSecond(data).ToString();
 
-            var second = SolveSecond(data);
-            Console.WriteLine($"Day 2 (2): {second}");
+            return (first, second);
         }
 
         private static (IPasswordPolicy, string) ParseLine(string line,
@@ -73,4 +58,21 @@ namespace adventofcode2020
                 .Count(t => t.Item1.IsValid(t.Item2));
         }
     }
+    
+    public interface IPasswordPolicy
+    {
+        public bool IsValid(string password);
+    }
+
+    public record MinMaxPasswordPolicy(char Letter, int Min, int Max) : IPasswordPolicy
+    {
+        public bool IsValid(string password) => password.Count(c => c == Letter).IsBetween(Min, Max);
+    }
+
+    public record ExactlyOnePositionPasswordPolicy(char Letter, int First, int Second) : IPasswordPolicy
+    {
+        public bool IsValid(string password) => password.ElementAtOrDefault(First - 1) == Letter ^
+                                                password.ElementAtOrDefault(Second - 1) == Letter;
+    }
+
 }
