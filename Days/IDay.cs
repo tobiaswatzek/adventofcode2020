@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace adventofcode2020
+namespace adventofcode2020.Days
 {
     public interface IDay
     {

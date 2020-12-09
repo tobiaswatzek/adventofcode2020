@@ -1,10 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace adventofcode2020
+namespace adventofcode2020.Days
 {
     public class Day1 : IDay
     {

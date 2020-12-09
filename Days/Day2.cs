@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using adventofcode2020.Extensions;
 
-namespace adventofcode2020
+namespace adventofcode2020.Days
 {
     public class Day2 : IDay
     {

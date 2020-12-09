@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace adventofcode2020
+namespace adventofcode2020.Days
 {
     public class Day3 : IDay
     {
