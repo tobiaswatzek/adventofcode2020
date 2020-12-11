@@ -46,7 +46,7 @@ namespace adventofcode2020.Days
             {
                 if (stopwatch.ElapsedMilliseconds > 5000)
                 {
-                    // throw new TimeoutException("Running over 5 seconds.");
+                    throw new TimeoutException("Running over 5 seconds.");
                 }
 
                 var line = await reader.ReadLineAsync();
