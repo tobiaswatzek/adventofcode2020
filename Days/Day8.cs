@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,22 +14,62 @@ namespace adventofcode2020.Days
 
         public async Task<(string firstSolution, string secondSolution)> Solve()
         {
-            var instructions = (await ParseInstructions()).ToList();
+            var instructions = (await ParseInstructions()).ToImmutableArray();
             var firstSolution = SolveFirst(instructions);
-
-            return (firstSolution, "");
+            var secondSolution = SolveSecond(instructions);
+            return (firstSolution, secondSolution);
         }
 
         private static string SolveFirst(IReadOnlyList<Instruction> instructions)
         {
+            var environment = RunInstructions(instructions);
+
+            return environment.Accumulator.ToString();
+        }
+
+        private static string SolveSecond(IImmutableList<Instruction> instructions)
+        {
+            for (int i = 0; i < instructions.Count; i++)
+            {
+                var swappedInstruction = instructions[i] switch
+                {
+                    Jump jmp => (Instruction) new NoOperation(jmp.Address, jmp.Value),
+                    NoOperation nop => new Jump(nop.Address, nop.Value),
+                    Accumulation acc => acc,
+                    _ => throw new InvalidOperationException("Instruction not known.")
+                };
+
+                var updatedInstructions = instructions.SetItem(i, swappedInstruction);
+
+                var environment = RunInstructions(updatedInstructions);
+
+                if (!environment.Aborted)
+                {
+                    return environment.Accumulator.ToString();
+                }
+            }
+
+            throw new InvalidOperationException("No solution found.");
+        }
+
+        private static Environment RunInstructions(IReadOnlyList<Instruction> instructions)
+        {
+            var instructionHistory = new HashSet<Instruction>();
             var environment = new Environment(0);
             var instruction = instructions[0];
-            while (instruction.ExecutionCount == 0)
+            while (instruction is not null)
             {
+                if (instructionHistory.Contains(instruction))
+                {
+                    environment.Abort();
+                    break;
+                }
+
+                instructionHistory.Add(instruction);
                 instruction = instruction.Execute(environment, instructions);
             }
 
-            return environment.Accumulator.ToString();
+            return environment;
         }
 
         private static async Task<IEnumerable<Instruction>> ParseInstructions()
@@ -56,6 +97,8 @@ namespace adventofcode2020.Days
     {
         public long Accumulator { get; private set; }
 
+        public bool Aborted { get; private set; }
+
         public Environment(long initialAccumulatorValue)
         {
             Accumulator = initialAccumulatorValue;
@@ -65,73 +108,50 @@ namespace adventofcode2020.Days
         {
             Accumulator += n;
         }
+
+        public void Abort()
+        {
+            Aborted = true;
+        }
     }
 
-    public abstract class Instruction
+    public abstract record Instruction(int Address, int Value)
     {
-        public int ExecutionCount { get; set; }
-
-        public int Address { get; }
-        public int Value { get; }
-
-        public string Name { get; }
-
-        public Instruction(int address, string name, int value)
+        public Instruction? Execute(Environment environment, IEnumerable<Instruction> allInstructions)
         {
-            Name = name;
-            Value = value;
-            Address = address;
-            ExecutionCount = 0;
-        }
-
-        public Instruction Execute(Environment environment, IReadOnlyList<Instruction> allInstructions)
-        {
-            ExecutionCount++;
             return ExecuteInternal(environment, allInstructions);
         }
 
-        protected abstract Instruction ExecuteInternal(Environment environment,
-            IReadOnlyList<Instruction> allInstructions);
+        protected abstract Instruction? ExecuteInternal(Environment environment,
+            IEnumerable<Instruction> allInstructions);
     }
 
-    public class Accumulation : Instruction
+    public record Accumulation(int Address, int Value) : Instruction(Address, Value)
     {
-        public Accumulation(int address, int value) : base(address, "acc", value)
-        {
-        }
-
-        protected override Instruction ExecuteInternal(Environment environment,
-            IReadOnlyList<Instruction> allInstructions)
+        protected override Instruction? ExecuteInternal(Environment environment,
+            IEnumerable<Instruction> allInstructions)
         {
             environment.AddToAccumulator(Value);
-            return allInstructions[Address + 1];
+            return allInstructions.ElementAtOrDefault(Address + 1);
         }
     }
 
-    public class Jump : Instruction
+    public record Jump(int Address, int Value) : Instruction(Address, Value)
     {
-        public Jump(int address, int value) : base(address, "jmp", value)
+        protected override Instruction? ExecuteInternal(Environment environment,
+            IEnumerable<Instruction> allInstructions)
         {
-        }
-
-        protected override Instruction ExecuteInternal(Environment environment,
-            IReadOnlyList<Instruction> allInstructions)
-        {
-            return allInstructions[Address + Value];
+            return allInstructions.ElementAtOrDefault(Address + Value);
         }
     }
 
 
-    public class NoOperation : Instruction
+    public record NoOperation(int Address, int Value) : Instruction(Address, Value)
     {
-        public NoOperation(int address, int value) : base(address, "nop", value)
+        protected override Instruction? ExecuteInternal(Environment environment,
+            IEnumerable<Instruction> allInstructions)
         {
-        }
-
-        protected override Instruction ExecuteInternal(Environment environment,
-            IReadOnlyList<Instruction> allInstructions)
-        {
-            return allInstructions[Address + 1];
+            return allInstructions.ElementAtOrDefault(Address + 1);
         }
     }
 }
