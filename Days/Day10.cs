@@ -13,7 +13,9 @@ namespace adventofcode2020.Days
         {
             var adapters = await ParseInput();
             var firstSolution = SolveFirst(adapters);
-            return (firstSolution, "");
+            var secondSolution = SolveSecond(adapters);
+
+            return (firstSolution, secondSolution);
         }
 
         private static string SolveFirst(IReadOnlyCollection<int> adapters)
@@ -31,8 +33,37 @@ namespace adventofcode2020.Days
 
             joltDifferences.TryGetValue(1, out var oneJoltDifferences);
             joltDifferences.TryGetValue(3, out var threeJoltDifferences);
-            
+
             return (oneJoltDifferences * threeJoltDifferences).ToString();
+        }
+
+        private static string SolveSecond(IReadOnlyCollection<int> adapters)
+        {
+            var maxJoltage = adapters.Max() + 3;
+            var orderedAdapters = adapters.Concat(new[] {0, maxJoltage}).OrderBy(a => a).ToArray();
+            var paths = new Dictionary<int, ulong>(orderedAdapters.Length) {[0] = 1};
+            foreach (var adapter in orderedAdapters)
+            {
+                for (int diff = 1; diff < 4; diff++)
+                {
+                    var nextAdapter = adapter + diff;
+                    if (!orderedAdapters.Contains(nextAdapter))
+                    {
+                        continue;
+                    }
+
+                    if (paths.ContainsKey(nextAdapter))
+                    {
+                        paths[nextAdapter] += paths[adapter];
+                    }
+                    else
+                    {
+                        paths[nextAdapter] = paths[adapter];
+                    }
+                }
+            }
+
+            return paths[maxJoltage].ToString();
         }
 
         private static async Task<IReadOnlyCollection<int>> ParseInput()
