@@ -202,9 +202,9 @@ namespace adventofcode2020.Days
             {
                 Waypoint = degrees switch
                 {
-                    90 => (Math.Abs(Waypoint.Y), -Math.Abs(Waypoint.X)),
-                    180 => (-Math.Abs(Waypoint.X), -Math.Abs(Waypoint.Y)),
-                    270 => (-Math.Abs(Waypoint.Y), Math.Abs(Waypoint.X)),
+                    90 => (-Waypoint.Y, Waypoint.X),
+                    180 => (-Waypoint.X, -Waypoint.Y),
+                    270 => (Waypoint.Y, -Waypoint.X),
                     360 => Waypoint,
                     _ => throw new ArgumentOutOfRangeException(nameof(degrees), degrees, "Degree not supported.")
                 };
@@ -214,9 +214,9 @@ namespace adventofcode2020.Days
             {
                 Waypoint = degrees switch
                 {
-                    90 => (-Math.Abs(Waypoint.Y), Waypoint.X),
-                    180 => (-Math.Abs(Waypoint.X), -Math.Abs(Waypoint.Y)),
-                    270 => (Math.Abs(Waypoint.Y), -Math.Abs(Waypoint.X)),
+                    90 => (Waypoint.Y, -Waypoint.X),
+                    180 => (-Waypoint.X, -Waypoint.Y),
+                    270 => (-Waypoint.Y, Waypoint.X),
                     360 => Waypoint,
                     _ => throw new ArgumentOutOfRangeException(nameof(degrees), degrees, "Degree not supported.")
                 };
